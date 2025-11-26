@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthLens AI - Fake News Detector</title>
+    <!-- Google Fonts for a clean, modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CSS Reset & Variables --- */
+        :root {
+            --primary-blue: #3b82f6;
+            --primary-purple: #8b5cf6;
+            --dark-bg: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #eab308;
+            --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- Utilities --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-blue), var(--primary-purple));
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        /* --- Navbar --- */
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            background: var(--gradient-hero);
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding-top: 80px; /* Space for navbar */
+        }
+
+        /* Abstract background grid decoration */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero-content p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        /* --- Input Interface (Glassmorphism) --- */
+        .input-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .input-box {
+            position: relative;
+            background: white;
+            border-radius: 50px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        .input-box button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: var(--primary-blue);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .input-box button:hover {
+            background: #2563eb;
+        }
+
+        .hero-footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        /* --- Results Section --- */
+        .results-section {
+            padding: 80px 0;
+            background-color: #f8fafc;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 50px;
+            font-weight: 700;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-top: 4px solid #ccc;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-fake { border-color: var(--danger); }
+        .card-real { border-color: var(--success); }
+        .card-mixed { border-color: var(--warning); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bg-red { background: #fef2f2; color: var(--danger); }
+        .bg-green { background: #f0fdf4; color: var(--success); }
+        .bg-yellow { background: #fefce8; color: var(--warning); }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .source {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .confidence {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .score-fake { color: var(--danger); }
+        .score-real { color: var(--success); }
+        .score-mixed { color: var(--warning); }
+
+        .analysis-list {
+            list-style: none;
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .analysis-list li {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .analysis-list li::before {
+            content: "•";
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+
+        /* --- How it Works --- */
+        .how-it-works {
+            padding-bottom: 80px;
+            text-align: center;
+        }
+
+        .steps-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 250px;
+        }
+
+        .step-icon {
+            width: 70px;
+            height: 70px;
+            background: #eff6ff;
+            color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .step-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .step-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .arrow-next {
+            display: flex;
+            align-items: center;
+            color: #cbd5e1;
+            font-size: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            .nav-links { display: none; } /* Simplified for mobile */
+            .arrow-next { display: none; }
+            .steps-container {
+                gap: 30px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .input-wrapper {
+                padding: 16px;
+            }
+
+            .input-box {
+                flex-direction: column;
+                border-radius: 20px;
+                align-items: stretch;
+            }
+
+            .input-box button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-search"></i></div>
+                <span>TruthLens AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#">API</a>
+                <a href="#">About Us</a>
+            </div>
+            <button class="btn btn-primary">Sign Up</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Uncover the Truth.<br>Fight Misinformation with AI</h1>
+                <p>Instantly analyze articles, links, and social posts to detect fake news, bias, and propaganda using our advanced machine learning models.</p>
+
+                <!-- Input Component -->
+                <div class="input-wrapper">
+                    <div class="tabs">
+                        <button class="tab active">
+                            <i class="fas fa-file-alt"></i> Paste Text
+                        </button>
+                        <button class="tab">
+                            <i class="fas fa-link"></i> Paste URL
+                        </button>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" placeholder="Paste article text or URL here...">
+                        <button>
+                            Analyze Now <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hero-footer">
+                    Supported by latest fact-checking databases and linguistic analysis.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section">
+        <div class="container">
+            <h2 class="section-title">Recent Analysis Results</h2>
+
+            <div class="cards-grid">
+                <!-- Fake Result Card -->
+                <div class="card card-fake">
+                    <div class="card-header">
+                        <span class="status-badge bg-red">
+                            <i class="fas fa-exclamation-triangle"></i> Result: Likely Fake
+                        </span>
+                    </div>
+                    <h3>Alien Invasion Imminent says 'Expert'</h3>
+                    <span class="source">DailyShockNews.com</span>
+                    <span class="confidence">Confidence Score: <span class="score-fake">94% Fake</span></span>
+                    <ul class="analysis-list">
+                        <li>High emotional language</li>
+                        <li>Unverified source</li>
+                        <li>Contradicts established facts</li>
+                    </ul>
+                </div>
+
+                <!-- Real Result Card -->
+                <div class="card card-real">
+                    <div class="card-header">
+                        <span class="status-badge bg-green">
+                            <i class="fas fa-check-circle"></i> Result: Verified Real
+                        </span>
+                    </div>
+                    <h3>SpaceX Launches New Satellite</h3>
+                    <span class="source">BBC News</span>
+                    <span class="confidence">Confidence Score: <span class="score-real">98% Real</span></span>
+                    <ul class="analysis-list">
+                        <li>Neutral tone</li>
+                        <li>Reputable source</li>
+                        <li>Corroborated by multiple outlets</li>
+                    </ul>
+                </div>
+
+                <!-- Mixed Result Card -->
+                <div class="card card-mixed">
+                    <div class="card-header">
+                        <span class="status-badge bg-yellow">
+                            <i class="fas fa-question-circle"></i> Result: Mixed/Unverified
+                        </span>
+                    </div>
+                    <h3>New Diet Pill 'Miracle' Cure?</h3>
+                    <span class="source">HealthBlog101</span>
+                    <span class="confidence">Confidence Score: <span class="score-mixed">60% Mixed</span></span>
+                    <ul class="analysis-list">
+                        <li>Some factual claims</li>
+                        <li>Promotional language detected</li>
+                        <li>Lack of scientific consensus</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="far fa-file-alt"></i>
+                    </div>
+                    <div class="step-title">1. Input Data</div>
+                    <div class="step-desc">Paste the text or URL of the article you want to verify.</div>
+                </div>
+
+                <div class="arrow-next">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="step-title">2. AI Analysis</div>
+                    <div class="step-desc">Our model scans for linguistic patterns and cross-references facts.</div>
+                </div>
+
+                <div class="arrow-next">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="step-title">3. Get Verdict</div>
+                    <div class="step-desc">Receive a trust score and a breakdown of the analysis.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
